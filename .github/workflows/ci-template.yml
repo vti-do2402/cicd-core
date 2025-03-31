@@ -13,13 +13,12 @@ on:
         required: true
         type: string
       image-tag:
-        required: true
         type: string
+        default: latest
       dockerfile:
         type: string
         default: Dockerfile
       aws-region:
-        required: true
         type: string
         default: us-west-2
     secrets:
