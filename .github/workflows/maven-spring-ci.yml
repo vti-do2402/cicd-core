@@ -29,14 +29,6 @@ jobs:
           distribution: ${{ inputs.distribution }}
           cache: 'maven'
 
-      - name: Cache Maven
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.arch }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.arch }}-m2-
-
       - name: Install dependencies
         run: ./mvnw --batch-mode --update-snapshots dependency:go-offline
 
