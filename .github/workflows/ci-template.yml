@@ -1,0 +1,93 @@
+name: Build, Tag, and Push Docker Image to Amazon ECR
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        type: string
+        default: mock-project
+      workspace:
+        type: string
+        default: quentin-mock-project-dev
+      ecr-repository:
+        required: true
+        type: string
+      image-tag:
+        required: true
+        type: string
+      dockerfile:
+        type: string
+        default: Dockerfile
+      aws-region:
+        required: true
+        type: string
+        default: us-west-2
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      # AWS_ASSUME_ROLE_ARN:
+      #   required: true
+
+jobs:
+  tag-commit:
+    runs-on: ${{ inputs.runs-on }}
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Generate Version
+        id: version
+        run: |
+          # Get the latest version tag (e.g., v1.2.3)
+          LATEST_TAG=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=0 2>/dev/null || echo "v0.0.0")
+
+          # Extract and increment the patch version
+          MAJOR=$(echo $LATEST_TAG | cut -d. -f1 | tr -d 'v')
+          MINOR=$(echo $LATEST_TAG | cut -d. -f2)
+          PATCH=$(echo $LATEST_TAG | cut -d. -f3)
+
+          # Automatically increment the patch version
+          NEXT_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+
+          echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Tag Commit
+        run: |
+          git tag v${{ steps.version.outputs.VERSION }}
+          git push origin v${{ steps.version.outputs.VERSION }}
+
+  build-and-push:
+    needs: tag-commit
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          # role-to-assume: ${ secrets.AWS_ASSUME_ROLE_ARN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ inputs.aws-region }}
+
+      # Follow: https://github.com/aws-actions/amazon-ecr-login
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          WORKSPACE: ${{ inputs.workspace }}
+          REPOSITORY: ${{ inputs.ecr-repository }}
+          IMAGE_TAG: ${{ needs.tag-commit.outputs.version }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+        run: |
+          docker build -t $WORKSPACE/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE .
+          docker tag $WORKSPACE/$REPOSITORY:$IMAGE_TAG $REGISTRY/$WORKSPACE/$REPOSITORY:$IMAGE_TAG
+          docker push $REGISTRY/$WORKSPACE/$REPOSITORY:$IMAGE_TAG

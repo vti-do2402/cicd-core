@@ -1,0 +1,42 @@
+name: Maven Spring CI Template
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        type: string
+        default: mock-project
+      # NOTE: Amazon Corretto only supports the major version specification.
+      java-version:
+        type: string
+        default: '17'
+      distribution:
+        type: string
+        default: corretto
+
+jobs:
+  build-and-test:
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for Sonar analysis
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: ${{ inputs.distribution }}
+          cache: 'maven'
+
+      - name: Install dependencies
+        run: ./mvnw --batch-mode --update-snapshots dependency:go-offline
+
+      - name: Lint
+        run: ./mvnw --batch-mode checkstyle:check
+
+      - name: Unit Tests
+        run: ./mvnw --batch-mode test
+
+      - name: Build with Maven
+        run: ./mvnw --batch-mode --update-snapshots clean package -DskipTests
