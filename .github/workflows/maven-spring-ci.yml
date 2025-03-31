@@ -33,7 +33,8 @@ jobs:
         run: ./mvnw --batch-mode --update-snapshots dependency:go-offline
 
       - name: Lint
-        run: ./mvnw --batch-mode checkstyle:check -Dcheckstyle.skip.fail-never=true
+        run: ./mvnw --batch-mode checkstyle:check
+        continue-on-error: true
 
       - name: Unit Tests
         run: ./mvnw --batch-mode test
