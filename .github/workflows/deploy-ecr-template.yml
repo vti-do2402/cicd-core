@@ -15,7 +15,7 @@ on:
       dockerfile:
         type: string
         default: Dockerfile
-      default_pump:
+      default_bump:
         type: string
         default: patch
         description: The default pump to use for the version(false, patch, minor, major)
@@ -35,7 +35,6 @@ on:
 jobs:
   tag-commit:
     runs-on: ${{ inputs.runs-on }}
-    environment: production
     outputs:
       version: ${{ steps.tag_version.outputs.new_tag }}
     steps:
@@ -47,7 +46,7 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ inputs.github_token }}
-          default_pump: ${{ inputs.default_pump }}
+          default_bump: ${{ inputs.default_bump }}
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
