@@ -6,6 +6,9 @@ on:
       runs-on:
         type: string
         default: mock-project
+      environment:
+        type: string
+        default: development
       workspace:
         type: string
         default: quentin-mock-project-dev
@@ -56,6 +59,8 @@ jobs:
   build-and-push:
     needs: tag-commit
     runs-on: ${{ inputs.runs-on }}
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
