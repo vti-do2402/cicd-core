@@ -35,31 +35,22 @@ jobs:
   tag-commit:
     runs-on: ${{ inputs.runs-on }}
     outputs:
-      version: ${{ steps.version.outputs.VERSION }}
+      version: ${{ steps.tag_version.outputs.new_tag }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Generate Version
-        id: version
-        run: |
-          # Get the latest version tag (e.g., v1.2.3)
-          LATEST_TAG=$(git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*" --abbrev=0 2>/dev/null || echo "v0.0.0")
-
-          # Extract and increment the patch version
-          MAJOR=$(echo $LATEST_TAG | cut -d. -f1 | tr -d 'v')
-          MINOR=$(echo $LATEST_TAG | cut -d. -f2)
-          PATCH=$(echo $LATEST_TAG | cut -d. -f3)
-
-          # Automatically increment the patch version
-          NEXT_VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
-
-          echo "VERSION=$NEXT_VERSION" >> $GITHUB_OUTPUT
-
-      - name: Tag Commit
-        run: |
-          git tag v${{ steps.version.outputs.VERSION }}
-          git push origin v${{ steps.version.outputs.VERSION }}
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
 
   build-and-push:
     needs: tag-commit
