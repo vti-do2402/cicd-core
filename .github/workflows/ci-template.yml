@@ -21,13 +21,15 @@ on:
       aws-region:
         type: string
         default: us-west-2
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
-      # AWS_ASSUME_ROLE_ARN:
-      #   required: true
+    # secrets:
+    #   # AWS_ASSUME_ROLE_ARN:
+    #   #   required: true
+    #   AWS_ACCESS_KEY_ID:
+    #     required: true
+    #   AWS_SECRET_ACCESS_KEY:
+    #     required: true
+    #   AWS_REGION:
+    #     required: true
 
 jobs:
   tag-commit:
