@@ -12,28 +12,29 @@ on:
       ecr-repository:
         required: true
         type: string
-      image-tag:
-        type: string
-        default: latest
       dockerfile:
         type: string
         default: Dockerfile
-      aws-region:
+      default_pump:
         type: string
-        default: us-west-2
-    # secrets:
-    #   # AWS_ASSUME_ROLE_ARN:
-    #   #   required: true
-    #   AWS_ACCESS_KEY_ID:
-    #     required: true
-    #   AWS_SECRET_ACCESS_KEY:
-    #     required: true
-    #   AWS_REGION:
-    #     required: true
+        default: patch
+        description: The default pump to use for the version(false, patch, minor, major)
+    secrets:
+      #   # AWS_ASSUME_ROLE_ARN:
+      #   #   required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_REGION:
+        required: true
+      GITHUB_TOKEN:
+        required: true
 
 jobs:
   tag-commit:
     runs-on: ${{ inputs.runs-on }}
+    environment: production
     outputs:
       version: ${{ steps.tag_version.outputs.new_tag }}
     steps:
@@ -45,6 +46,7 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_pump: ${{ inputs.default_pump }}
       - name: Create a GitHub release
         uses: ncipollo/release-action@v1
         with:
