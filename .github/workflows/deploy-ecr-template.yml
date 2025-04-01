@@ -37,6 +37,11 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     outputs:
       version: ${{ steps.tag_version.outputs.new_tag }}
+    permissions:
+      contents: write
+      packages: write
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
