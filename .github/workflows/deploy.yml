@@ -45,6 +45,11 @@ on:
         default: us-west-2
         description: The AWS region to use for the action
 
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
 jobs:
   deploy:
     runs-on: ${{ inputs.runs_on }}

@@ -12,8 +12,8 @@ on:
         default: true
         description: Whether to skip the lint step
       java_version:
-        type: number
-        default: 17
+        type: string
+        default: '17'
         description: The Java version to use for the action (17, 11, 8, 21)
       distribution:
         type: string
@@ -30,7 +30,7 @@ on:
 
 jobs:
   ci:
-    name: CI
+    name: Run Maven CI Pipeline
     runs-on: ${{ inputs.runs_on }}
     outputs:
       version: ${{ steps.tag_version.outputs.new_tag }}
