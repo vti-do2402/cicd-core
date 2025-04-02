@@ -9,7 +9,7 @@ on:
         description: The runner to use for the action
       skip_lint:
         type: boolean
-        default: true
+        default: false
         description: Whether to skip the lint step
       java_version:
         type: string
@@ -29,31 +29,21 @@ on:
         description: The GitHub token to use for the action
 
 jobs:
-  ci:
+  maven:
     name: Run Maven CI Pipeline
-    runs-on: ${{ inputs.runs_on }}
-    outputs:
-      version: ${{ steps.tag_version.outputs.new_tag }}
-      changelog: ${{ steps.tag_version.outputs.changelog }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Important for Sonar analysis
+    uses: vti-do2402/cicd-core/.github/workflows/ci-maven.yml@feat/actions
+    with:
+      runs_on: ${{ inputs.runs_on }}
+      skip_lint: ${{ inputs.skip_lint }}
+      java_version: ${{ inputs.java_version }}
+      distribution: ${{ inputs.distribution }}
 
-      - name: Build and Test with Maven
-        id: build_and_test
-        uses: vti-do2402/cicd-core/.github/workflows/ci-maven.yml@feat/actions
-        with:
-          skip_lint: ${{ inputs.skip_lint }}
-          java_version: ${{ inputs.java_version }}
-          distribution: ${{ inputs.distribution }}
-
-      - name: Dry run tag
-        id: tag_version
-        uses: vti-do2402/cicd-core/.github/workflows/tag-and-release.yml@feat/actions
-        with:
-          dry_run: true
-          draft_release: true
-          default_bump: ${{ inputs.default_bump }}
-          github_token: ${{ inputs.github_token }}
+  tag-and-release:
+    name: Dry run tag and release
+    uses: vti-do2402/cicd-core/.github/workflows/tag-and-release.yml@feat/actions
+    with:
+      runs_on: ${{ inputs.runs_on }}
+      dry_run_tag: true
+      draft_release: true
+      default_bump: ${{ inputs.default_bump }}
+      github_token: ${{ inputs.github_token }}
