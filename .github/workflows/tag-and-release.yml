@@ -1,0 +1,53 @@
+name: 'Tag and Release Workflow'
+description: 'Creates a new tag and GitHub release'
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: 'The runner to use for the action'
+        type: string
+        required: true
+      github_token:
+        description: 'GitHub token for authentication'
+        type: string
+        required: true
+      default_bump:
+        description: 'Which type of bump to use when none explicitly provided (patch, minor, major)'
+        type: string
+        required: false
+        default: 'patch'
+      dry_run_tag:
+        description: 'Calculate the next version without creating a tag'
+        type: string
+        required: false
+        default: 'false'
+      draft_release:
+        description: 'Create release as draft'
+        type: string
+        required: false
+        default: 'false'
+
+jobs:
+  tag-and-release:
+    runs-on: ${{ inputs.runs_on }}
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+      changelog: ${{ steps.tag_version.outputs.changelog }}
+    steps:
+      - name: Calculate or Create Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ inputs.github_token }}
+          default_bump: ${{ inputs.default_bump }}
+          dry_run: ${{ inputs.dry_run_tag }}
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          draft: ${{ inputs.draft_release }}
+          token: ${{ inputs.github_token }}

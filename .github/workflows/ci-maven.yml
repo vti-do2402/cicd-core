@@ -1,0 +1,56 @@
+name: Maven Spring CI Workflow
+description: Build and Test with Maven
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        type: string
+        default: ubuntu-latest
+        description: The runner to use for the action
+      # NOTE: Amazon Corretto only supports the major version specification.
+      java_version:
+        type: string
+        default: '17'
+        description: The Java version to use for the action
+      distribution:
+        type: string
+        default: corretto
+        description: The distribution to use for the action
+      skip_lint:
+        type: string
+        default: 'true'
+        description: Whether to skip the lint step
+
+jobs:
+  ci:
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for Sonar analysis
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.distribution }}
+          cache: 'maven'
+
+      - name: Install dependencies
+        shell: bash
+        run: ./mvnw --batch-mode --update-snapshots dependency:go-offline
+
+      - name: Lint
+        shell: bash
+        run: ./mvnw --batch-mode checkstyle:check
+        continue-on-error: ${{ inputs.skip_lint }}
+
+      - name: Unit Tests
+        shell: bash
+        run: ./mvnw --batch-mode test
+
+      - name: Build with Maven
+        shell: bash
+        run: ./mvnw --batch-mode --update-snapshots clean package -DskipTests

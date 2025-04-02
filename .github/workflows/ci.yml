@@ -43,7 +43,7 @@ jobs:
 
       - name: Build and Test with Maven
         id: build_and_test
-        uses: ./.github/actions/ci/maven
+        uses: vti-do2402/cicd-core/.github/workflows/ci-maven.yml@feat/actions
         with:
           skip_lint: ${{ inputs.skip_lint }}
           java_version: ${{ inputs.java_version }}
@@ -51,7 +51,7 @@ jobs:
 
       - name: Dry run tag
         id: tag_version
-        uses: ./.github/actions/ci/tag-and-release
+        uses: vti-do2402/cicd-core/.github/workflows/tag-and-release.yml@feat/actions
         with:
           dry_run: true
           draft_release: true
