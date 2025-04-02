@@ -1,0 +1,58 @@
+name: Push to Amazon ECR Action
+description: Build and Push Docker Image to ECR
+
+inputs:
+  runs_on:
+    default: mock-project
+    description: The runner to use for the action
+  environment:
+    required: true
+    default: dev
+    description: The environment to push the image to (development, staging, production)
+  ecr_repository:
+    required: true
+    description: The repository to push the image to
+  docker_build_context:
+    default: .
+    description: The context to build the image in
+  dockerfile:
+    default: Dockerfile
+    description: The Dockerfile to use for the image
+  image_tag:
+    required: true
+    description: The tag to use for the image
+  aws_account_id:
+    required: true
+    description: The AWS account ID to use for the action
+  aws_region:
+    default: us-west-2
+    description: The AWS region to use for the action
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/github-actions-role
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Login to Amazon ECR
+      id: login_ecr
+      uses: aws-actions/amazon-ecr-login@v2
+      with:
+        registries: ${{ inputs.aws_account_id }}
+
+    - name: Build, Tag, and Push Docker Image to ECR
+      shell: bash
+      env:
+        REGISTRY: ${{ steps.login_ecr.outputs.registry }}
+        REPOSITORY: ${{ inputs.ecr_repository }}
+        IMAGE_TAG: ${{ inputs.image_tag }}
+        DOCKERFILE_PATH: ${{ inputs.dockerfile }}
+        DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
+      run: |
+        docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
+        docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        echo "Image tag: $IMAGE_TAG"
+        echo "Push image to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
