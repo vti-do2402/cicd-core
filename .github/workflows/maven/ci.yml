@@ -27,6 +27,13 @@ on:
       sonar_host_url:
         type: string
         description: The SonarQube host URL to use for the action
+    secrets:
+      SONAR_TOKEN:
+        required: true
+        description: The SonarQube token to use for the action
+      SONAR_HOST_URL:
+        required: true
+        description: The SonarQube host URL to use for the action
 
 jobs:
   code-quality:
@@ -62,8 +69,8 @@ jobs:
       - name: Analyze with SonarQube
         uses: SonarSource/sonarqube-scan-action@v5.1.0
         env:
-          SONAR_TOKEN: ${{ inputs.sonar_token }}
-          SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           cache: 'sonar'
         continue-on-error: ${{ inputs.skip_lint }}
