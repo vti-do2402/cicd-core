@@ -38,7 +38,6 @@ runs:
         dry_run: ${{ inputs.dry_run }}
 
     - name: Create GitHub Release
-      if: inputs.dry_run == 'false'
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ steps.tag_version.outputs.new_tag }}

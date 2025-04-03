@@ -44,6 +44,13 @@ on:
         type: string
         default: us-west-2
         description: The AWS region to use for the action
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: false
+        description: The AWS access key ID to use for the action
+      AWS_SECRET_ACCESS_KEY:
+        required: false
+        description: The AWS secret access key to use for the action
 
 permissions:
   id-token: write
@@ -51,31 +58,33 @@ permissions:
   packages: write
 
 jobs:
+  ci:
+    uses: vti-do2402/cicd-core/.github/workflows/ci.yml@feat/actions
+    with:
+      runs_on: ${{ inputs.runs_on }}
+      github_token: ${{ inputs.github_token }}
+      default_bump: ${{ inputs.default_bump }}
+      skip_lint: true # TODO: Remove this
+
   deploy:
+    uses: vti-do2402/cicd-core/.github/workflows/deploy-ecr.yml@feat/actions
+    with:
+      runs_on: ${{ inputs.runs_on }}
+      environment: ${{ inputs.environment }}
+      ecr_repository: ${{ inputs.ecr_repository }}
+      image_tag: ${{ inputs.image_tag }}
+      aws_account_id: ${{ inputs.aws_account_id }}
+      aws_region: ${{ inputs.aws_region }}
+      github_token: ${{ inputs.github_token }}
+      default_bump: ${{ inputs.default_bump }}
+
+  update-k8s:
+    name: Update Kubernetes
     runs-on: ${{ inputs.runs_on }}
-    environment:
-      name: ${{ inputs.environment }}
     steps:
-      - name: Checkout
+      - name: Checkout cicd-core
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Important for Sonar analysis
-
-      - name: Tag and Release
-        uses: ./.github/actions/ci/tag-and-release
-        with:
-          github_token: ${{ inputs.github_token }}
-          default_bump: ${{ inputs.default_bump }}
-          dry_run: false
-          draft_release: false
-
-      - name: Deploy
-        uses: ./.github/actions/deploy-ecr
-        with:
-          environment: ${{ inputs.environment }}
-          ecr_repository: ${{ inputs.ecr_repository }}
-          docker_build_context: ${{ inputs.docker_build_context }}
-          dockerfile: ${{ inputs.dockerfile }}
-          image_tag: ${{ inputs.image_tag }}
-          aws_account_id: ${{ inputs.aws_account_id }}
-          aws_region: ${{ inputs.aws_region }}
+          repository: vti-do2402/cicd-core
+          token: ${{ inputs.github_token }}
+          path: cicd-core
