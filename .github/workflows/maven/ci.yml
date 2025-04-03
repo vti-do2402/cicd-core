@@ -21,6 +21,12 @@ on:
         type: boolean
         default: false
         description: Whether to skip the lint step
+      sonar_token:
+        type: string
+        description: The SonarQube token to use for the action
+      sonar_host_url:
+        type: string
+        description: The SonarQube host URL to use for the action
 
 jobs:
   code-quality:
@@ -53,6 +59,13 @@ jobs:
         shell: bash
         run: ./mvnw --batch-mode test
 
+      - name: Analyze with SonarQube
+        uses: SonarSource/sonarqube-scan-action@v5.1.0
+        env:
+          SONAR_TOKEN: ${{ inputs.sonar_token }}
+          SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+        continue-on-error: ${{ inputs.skip_lint }}
+
   build:
     name: Build
     description: Build the project
@@ -70,25 +83,6 @@ jobs:
           distribution: ${{ inputs.distribution }}
           cache: 'maven'
 
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \ 
-            -Dsonar.projectKey=Database-Service \
-            -Dsonar.projectName='Database Service'
+      - name: Build
+        shell: bash
+        run: ./mvnw --batch-mode clean install -DskipTests
