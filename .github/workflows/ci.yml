@@ -11,6 +11,10 @@ on:
         type: boolean
         default: false
         description: Whether to skip the lint step
+      environment:
+        type: string
+        default: null
+        description: The environment to use for the action
       java_version:
         type: string
         default: '17'
@@ -27,6 +31,14 @@ on:
         type: string
         required: true
         description: The GitHub token to use for the action
+      dry_run_tag:
+        type: boolean
+        default: true
+        description: Whether to dry run the tag action
+      draft_release:
+        type: boolean
+        default: true
+        description: Whether to draft the release
 
 jobs:
   maven:
@@ -43,7 +55,7 @@ jobs:
     uses: vti-do2402/cicd-core/.github/workflows/tag-and-release.yml@feat/actions
     with:
       runs_on: ${{ inputs.runs_on }}
-      dry_run_tag: true
-      draft_release: true
+      dry_run_tag: false
+      draft_release: false
       default_bump: ${{ inputs.default_bump }}
       github_token: ${{ inputs.github_token }}

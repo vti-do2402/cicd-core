@@ -59,27 +59,49 @@ permissions:
 
 jobs:
   ci:
-    uses: vti-do2402/cicd-core/.github/workflows/ci.yml@feat/actions
+    uses: vti-do2402/cicd-core/.github/workflows/ci-maven.yml@feat/actions
     with:
       runs_on: ${{ inputs.runs_on }}
       github_token: ${{ inputs.github_token }}
       default_bump: ${{ inputs.default_bump }}
       skip_lint: true # TODO: Remove this
 
+  dry-run-tag-and-release:
+    name: Dry run tag and release
+    uses: vti-do2402/cicd-core/.github/workflows/tag-and-release.yml@feat/actions
+    with:
+      runs_on: ${{ inputs.runs_on }}
+      dry_run_tag: true
+      draft_release: true
+      default_bump: ${{ inputs.default_bump }}
+      github_token: ${{ inputs.github_token }}
+
   deploy:
+    needs: dry-run-tag-and-release
     uses: vti-do2402/cicd-core/.github/workflows/deploy-ecr.yml@feat/actions
     with:
       runs_on: ${{ inputs.runs_on }}
       environment: ${{ inputs.environment }}
       ecr_repository: ${{ inputs.ecr_repository }}
-      image_tag: ${{ inputs.image_tag }}
+      image_tag: ${{ needs.dry-run-tag-and-release.outputs.tag-and-release.new_tag }}
       aws_account_id: ${{ inputs.aws_account_id }}
       aws_region: ${{ inputs.aws_region }}
       github_token: ${{ inputs.github_token }}
       default_bump: ${{ inputs.default_bump }}
 
+  tag-and-release:
+    name: Dry run tag and release
+    needs: [deploy, dry-run-tag-and-release]
+    uses: vti-do2402/cicd-core/.github/workflows/tag-and-release.yml@feat/actions
+    with:
+      runs_on: ${{ inputs.runs_on }}
+      dry_run_tag: false
+      draft_release: false
+      default_bump: ${{ inputs.default_bump }}
+      github_token: ${{ inputs.github_token }}
+
   update-k8s:
-    name: Update Kubernetes
+    name: Update Kubernetes Manifest
     runs-on: ${{ inputs.runs_on }}
     steps:
       - name: Checkout cicd-core

@@ -59,22 +59,6 @@ jobs:
         with:
           fetch-depth: 0 # Important for Sonar analysis
 
-      - name: Calculate or Create Tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.2
-        with:
-          github_token: ${{ inputs.github_token }}
-          default_bump: ${{ inputs.default_bump }}
-          dry_run: false
-
-      - name: Create GitHub Release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          body: ${{ steps.tag_version.outputs.changelog }}
-          draft: false
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:

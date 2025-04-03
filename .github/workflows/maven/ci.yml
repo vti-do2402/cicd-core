@@ -23,7 +23,9 @@ on:
         description: Whether to skip the lint step
 
 jobs:
-  ci:
+  code-quality:
+    name: Code Quality
+    description: Run Unit Tests and Lint
     runs-on: ${{ inputs.runs_on }}
     steps:
       - name: Checkout Code
@@ -51,6 +53,42 @@ jobs:
         shell: bash
         run: ./mvnw --batch-mode test
 
-      - name: Build with Maven
-        shell: bash
-        run: ./mvnw --batch-mode --update-snapshots clean package -DskipTests
+  build:
+    name: Build
+    description: Build the project
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for Sonar analysis
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.distribution }}
+          cache: 'maven'
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \ 
+            -Dsonar.projectKey=Database-Service \
+            -Dsonar.projectName='Database Service'
