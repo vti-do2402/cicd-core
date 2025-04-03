@@ -64,6 +64,8 @@ jobs:
         env:
           SONAR_TOKEN: ${{ inputs.sonar_token }}
           SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+        with:
+          cache: 'sonar'
         continue-on-error: ${{ inputs.skip_lint }}
 
   build:
