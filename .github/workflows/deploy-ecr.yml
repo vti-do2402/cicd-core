@@ -29,20 +29,20 @@ on:
         type: string
         required: true
         description: The tag to use for the image
-    # secrets:
-    #   AWS_ACCOUNT_ID:
-    #     required: true
-    #     description: The AWS account ID to use for the action
-    #   AWS_REGION:
-    #     required: true
-    #     description: The AWS region to use for the action
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+        description: The AWS account ID to use for the action
+      AWS_REGION:
+        required: true
+        description: The AWS region to use for the action
 
 jobs:
   deploy-ecr:
     name: Deploy to Amazon ECR
     runs-on: ${{ inputs.runs_on }}
     environment:
-      name: ${{ vars.ENVIRONMENT }}
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -65,8 +65,7 @@ jobs:
         id: build-and-push
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-          WORKSPACE: ${{ vars.WORKSPACE }}
+          REPOSITORY: ${{ inputs.ecr_repository }}
           IMAGE_TAG: ${{ inputs.image_tag }}
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
