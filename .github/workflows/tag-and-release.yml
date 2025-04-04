@@ -24,7 +24,7 @@ on:
       artifacts:
         description: 'The artifacts to upload to the release'
         type: string
-        default: '*.jar'
+        default:
     secrets:
       TOKEN:
         required: true
@@ -64,7 +64,8 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.artifacts }}
+          name: artifact
+          path: ./app.jar
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
