@@ -30,7 +30,7 @@ on:
       artifacts:
         type: string
         description: The artifacts to upload to the release
-        default: app
+        default: app/*.jar
     secrets:
       SONAR_TOKEN:
         required: true
@@ -96,6 +96,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifacts }}
           path: target/*[^s].jar # only upload the app jar file
           retention-days: 1
