@@ -66,7 +66,7 @@ jobs:
         id: login_ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
-          registries: ${{ secrets.aws_account_id }}
+          registries: ${{ secrets.AWS_ACCOUNT_ID }}
 
       - name: Build and Push Docker Image to ECR
         id: build_and_push
