@@ -13,11 +13,6 @@ on:
         required: true
         default: development
         description: The environment to push the image to (development, staging, production)
-      default_bump:
-        type: string
-        required: false
-        default: patch
-        description: The default bump type to use for the action (patch, minor, major)
       ecr_repository:
         type: string
         required: true
@@ -41,8 +36,6 @@ on:
       AWS_REGION:
         required: true
         description: The AWS region to use for the action
-      TOKEN:
-        description: The GitHub token to use for the action
 
 jobs:
   deploy-ecr:
