@@ -70,8 +70,7 @@ jobs:
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
         run: |
-          echo "Repository: $REPOSITORY"
-          echo "Input Repository: ${{ inputs.ecr_repository }}"
+          echo "Environment: ${{ inputs.environment }}"
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "Image tag: $IMAGE_TAG"
