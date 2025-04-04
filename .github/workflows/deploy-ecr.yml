@@ -71,6 +71,8 @@ jobs:
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
         run: |
           echo "Environment: ${{ inputs.environment }}"
+          echo "Workspace: $WORKSPACE"
+          echo $WORKSPACE
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "Image tag: $IMAGE_TAG"
