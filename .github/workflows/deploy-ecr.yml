@@ -13,10 +13,6 @@ on:
         required: true
         default: development
         description: The environment to push the image to (development, staging, production)
-      github_token:
-        type: string
-        required: true
-        description: The GitHub token to use for the action
       default_bump:
         type: string
         required: false
