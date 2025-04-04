@@ -16,13 +16,15 @@ on:
       dry_run_tag:
         description: 'Calculate the next version without creating a tag'
         type: boolean
-        required: false
         default: false
       draft_release:
         description: 'Create release as draft'
         type: boolean
-        required: false
         default: false
+      artifacts:
+        description: 'The artifacts to upload to the release'
+        type: string
+        default: app
     secrets:
       TOKEN:
         required: true
@@ -66,22 +68,4 @@ jobs:
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
           draft: ${{ inputs.draft_release }}
-
-      - name: Create file for version and changelog
-        run: |
-          echo "${{ steps.tag_version.outputs.new_tag }}" >> version
-          echo "${{ steps.tag_version.outputs.changelog }}" >> changelog
-
-      - name: Upload Version
-        uses: actions/upload-artifact@v4
-        with:
-          name: version
-          path: version.txt
-          retention-days: 1
-
-      - name: Upload Changelog
-        uses: actions/upload-artifact@v4
-        with:
-          name: changelog
-          path: changelog
-          retention-days: 1
+          artifacts: ${{ inputs.artifacts }}
