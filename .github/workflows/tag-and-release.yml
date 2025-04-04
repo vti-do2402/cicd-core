@@ -66,7 +66,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artifacts }}
-          path: ${{ inputs.artifacts }}-${{ steps.tag_version.outputs.new_tag }}.jar
+          path: artifacts
 
       - name: Check
         run: |
@@ -83,4 +83,4 @@ jobs:
           body: ${{ steps.tag_version.outputs.changelog }}
           draft: ${{ inputs.draft_release }}
           artifactErrorsFailBuild: true
-          artifacts: ${{ inputs.artifacts }}-${{ steps.tag_version.outputs.new_tag }}.jar
+          artifacts: artifacts/${{ inputs.artifacts }}.jar
