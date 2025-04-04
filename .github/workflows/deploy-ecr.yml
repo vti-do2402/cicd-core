@@ -29,13 +29,13 @@ on:
         type: string
         required: true
         description: The tag to use for the image
-    secrets:
-      AWS_ACCOUNT_ID:
-        required: true
-        description: The AWS account ID to use for the action
-      AWS_REGION:
-        required: true
-        description: The AWS region to use for the action
+    # secrets:
+    #   AWS_ACCOUNT_ID:
+    #     required: true
+    #     description: The AWS account ID to use for the action
+    #   AWS_REGION:
+    #     required: true
+    #     description: The AWS region to use for the action
 
 jobs:
   deploy-ecr:
