@@ -68,12 +68,19 @@ jobs:
           name: ${{ inputs.artifacts }}
           path: ${{ inputs.artifacts }}-${{ steps.tag_version.outputs.new_tag }}.jar
 
+      - name: Check
+        run: |
+          ls -la
+          echo "download-artifact.outputs.download-path"
+          echo ${{ steps.download-artifact.outputs.download-path }}
+
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
+
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
           draft: ${{ inputs.draft_release }}
           artifactErrorsFailBuild: true
-          artifacts: ${{ steps.download-artifact.outputs.download-path }}
+          artifacts: ${{ inputs.artifacts }}-${{ steps.tag_version.outputs.new_tag }}.jar
