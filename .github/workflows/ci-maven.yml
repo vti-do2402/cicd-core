@@ -53,17 +53,14 @@ jobs:
           cache: 'maven'
 
       - name: Install dependencies
-        shell: bash
-        run: ./mvnw --batch-mode --update-snapshots dependency:go-offline
+        run: mvn --batch-mode --update-snapshots dependency:go-offline
 
       - name: Lint
-        shell: bash
-        run: ./mvnw --batch-mode checkstyle:check
+        run: mvn --batch-mode checkstyle:check
         continue-on-error: ${{ inputs.skip_lint }}
 
       - name: Unit Tests
-        shell: bash
-        run: ./mvnw --batch-mode test
+        run: mvn --batch-mode test
 
       - name: Analyze with SonarQube
         uses: SonarSource/sonarqube-scan-action@v5.1.0
@@ -89,5 +86,4 @@ jobs:
           cache: 'maven'
 
       - name: Build
-        shell: bash
-        run: ./mvnw --batch-mode clean install -DskipTests
+        run: mvn --batch-mode clean install -DskipTests
