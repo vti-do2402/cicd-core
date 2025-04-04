@@ -29,8 +29,8 @@ on:
         description: The SonarQube host URL to use for the action
       artifacts:
         type: string
+        required: true
         description: The artifacts to upload to the release
-        default: app/*.jar
     secrets:
       SONAR_TOKEN:
         required: true

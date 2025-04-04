@@ -24,7 +24,7 @@ on:
       artifacts:
         description: 'The artifacts to upload to the release'
         type: string
-        default:
+        required: true
     secrets:
       TOKEN:
         required: true
@@ -62,10 +62,11 @@ jobs:
           dry_run: ${{ inputs.dry_run_tag }}
 
       - name: Download Artifacts
+        id: download-artifact
         uses: actions/download-artifact@v4
         with:
-          name: artifact
-          path: ./app.jar
+          name: ${{ inputs.artifacts }}
+          path: ${{ inputs.artifacts }}-${{ steps.tag_version.outputs.new_tag }}.jar
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
@@ -74,4 +75,4 @@ jobs:
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
           draft: ${{ inputs.draft_release }}
-          artifacts: ${{ inputs.artifacts }}
+          artifacts: ${{ steps.download-artifact.outputs.download-path }}
