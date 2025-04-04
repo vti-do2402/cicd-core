@@ -33,6 +33,7 @@ permissions:
 
 jobs:
   tag-and-release:
+    name: Tag and Release
     runs-on: ${{ inputs.runs_on }}
     outputs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
