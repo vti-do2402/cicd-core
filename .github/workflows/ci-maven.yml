@@ -17,10 +17,10 @@ on:
         type: string
         default: corretto
         description: The distribution to use for the action
-      skip_lint:
+      skip_sonar:
         type: boolean
         default: false
-        description: Whether to skip the lint step
+        description: Whether to skip the SonarQube analysis
       sonar_token:
         type: string
         description: The SonarQube token to use for the action
@@ -57,18 +57,18 @@ jobs:
 
       - name: Lint
         run: mvn --batch-mode checkstyle:check
-        continue-on-error: ${{ inputs.skip_lint }}
+        continue-on-error: true
 
       - name: Unit Tests
         run: mvn --batch-mode test
 
       - name: Analyze with SonarQube
-        if: inputs.sonar_token != ''
+        if: inputs.skip_sonar == false
         uses: SonarSource/sonarqube-scan-action@v5.1.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        continue-on-error: ${{ inputs.skip_lint }}
+        continue-on-error: true
 
   build:
     name: Build

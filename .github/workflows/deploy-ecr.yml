@@ -68,8 +68,8 @@ jobs:
         with:
           registries: ${{ secrets.aws_account_id }}
 
-      - name: Build, Tag, and Push Docker Image to ECR
-        shell: bash
+      - name: Build and Push Docker Image to ECR
+        id: build_and_push
         env:
           REGISTRY: ${{ steps.login_ecr.outputs.registry }}
           REPOSITORY: ${{ inputs.ecr_repository }}
@@ -81,6 +81,3 @@ jobs:
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "Image tag: $IMAGE_TAG"
           echo "Push image to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "push_image_to_ecr=true" >> $GITHUB_OUTPUT
-          echo "push_image_to_ecr_output=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
