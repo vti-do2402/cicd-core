@@ -8,10 +8,6 @@ on:
         description: 'The runner to use for the action'
         type: string
         required: true
-      github_token:
-        description: 'GitHub token for authentication'
-        type: string
-        required: true
       default_bump:
         description: 'Which type of bump to use when none explicitly provided (patch, minor, major)'
         type: string
@@ -27,6 +23,10 @@ on:
         type: boolean
         required: false
         default: false
+    secrets:
+      TOKEN:
+        required: true
+        description: The GitHub token to use for the action
 
 permissions:
   contents: write
@@ -41,7 +41,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          token: ${{ inputs.github_token }}
+          token: ${{ secrets.TOKEN }}
 
       - name: Calculate or Create Tag
         id: tag_version

@@ -41,6 +41,8 @@ on:
       AWS_REGION:
         required: true
         description: The AWS region to use for the action
+      TOKEN:
+        description: The GitHub token to use for the action
 
 jobs:
   deploy-ecr:
