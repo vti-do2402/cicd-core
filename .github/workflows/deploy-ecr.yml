@@ -42,7 +42,7 @@ jobs:
     name: Deploy to Amazon ECR
     runs-on: ${{ inputs.runs_on }}
     environment:
-      name: ${{ inputs.environment }}
+      name: ${{ vars.ENVIRONMENT }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -65,14 +65,12 @@ jobs:
         id: build-and-push
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ inputs.ecr_repository }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          WORKSPACE: ${{ vars.WORKSPACE }}
           IMAGE_TAG: ${{ inputs.image_tag }}
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
         run: |
-          echo "Environment: ${{ inputs.environment }}"
-          echo "Workspace env: ${{ env.WORKSPACE }}"
-          echo "Workspace vars: ${{ vars.WORKSPACE }}"
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "Image tag: $IMAGE_TAG"
