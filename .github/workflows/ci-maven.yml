@@ -63,6 +63,7 @@ jobs:
         run: mvn --batch-mode test
 
       - name: Analyze with SonarQube
+        if: inputs.sonar_token != ''
         uses: SonarSource/sonarqube-scan-action@v5.1.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
