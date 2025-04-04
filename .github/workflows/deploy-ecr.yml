@@ -83,3 +83,6 @@ jobs:
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "Image tag: $IMAGE_TAG"
           echo "Push image to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "push_image_to_ecr=true" >> $GITHUB_OUTPUT
+          echo "push_image_to_ecr_output=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
