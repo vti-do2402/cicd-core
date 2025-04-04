@@ -28,6 +28,9 @@ on:
         required: false
         default: false
 
+permissions:
+  contents: write
+
 jobs:
   tag-and-release:
     runs-on: ${{ inputs.runs_on }}
@@ -35,6 +38,9 @@ jobs:
       new_tag: ${{ steps.tag_version.outputs.new_tag }}
       changelog: ${{ steps.tag_version.outputs.changelog }}
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Calculate or Create Tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.2
