@@ -38,7 +38,6 @@ on:
 jobs:
   code-quality:
     name: Code Quality
-    description: Run Unit Tests and Lint
     runs-on: ${{ inputs.runs_on }}
     steps:
       - name: Checkout Code
@@ -71,13 +70,10 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        with:
-          cache: 'sonar'
         continue-on-error: ${{ inputs.skip_lint }}
 
   build:
     name: Build
-    description: Build the project
     runs-on: ${{ inputs.runs_on }}
     steps:
       - name: Checkout Code
