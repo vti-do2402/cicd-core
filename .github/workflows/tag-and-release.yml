@@ -73,6 +73,8 @@ jobs:
           ls -la
           echo "download-artifact.outputs.download-path"
           echo ${{ steps.download-artifact.outputs.download-path }}
+          echo "artifacts"
+          ls -la artifacts
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
