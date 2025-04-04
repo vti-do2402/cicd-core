@@ -18,7 +18,6 @@ on:
         description: The repository to push the image to
       workspace:
         type: string
-        required: true
         default: ${{ vars.WORKSPACE }}
         description: The workspace to push the image to
       docker_build_context:
