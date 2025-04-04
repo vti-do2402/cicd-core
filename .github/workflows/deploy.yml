@@ -7,6 +7,14 @@ on:
         type: string
         default: mock-project
         description: The runner to use for the action
+      java_version:
+        type: string
+        required: true
+        description: The Java version to use for the action
+      distribution:
+        type: string
+        required: true
+        description: The distribution to use for the action
       environment:
         type: string
         required: true
@@ -45,12 +53,18 @@ on:
         default: us-west-2
         description: The AWS region to use for the action
     secrets:
-      AWS_ACCESS_KEY_ID:
-        required: false
-        description: The AWS access key ID to use for the action
-      AWS_SECRET_ACCESS_KEY:
-        required: false
-        description: The AWS secret access key to use for the action
+      AWS_ACCOUNT_ID:
+        required: true
+        description: The AWS account ID to use for the action
+      AWS_REGION:
+        required: true
+        description: The AWS region to use for the action
+      SONAR_TOKEN:
+        required: true
+        description: The SonarQube token to use for the action
+      SONAR_HOST_URL:
+        required: true
+        description: The SonarQube host URL to use for the action
 
 permissions:
   id-token: write
@@ -62,9 +76,12 @@ jobs:
     uses: vti-do2402/cicd-core/.github/workflows/ci-maven.yml@feat/actions
     with:
       runs_on: ${{ inputs.runs_on }}
-      github_token: ${{ inputs.github_token }}
-      default_bump: ${{ inputs.default_bump }}
+      java_version: ${{ inputs.java_version }}
+      distribution: ${{ inputs.distribution }}
       skip_lint: true # TODO: Remove this
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   dry-run-tag-and-release:
     name: Dry run tag and release

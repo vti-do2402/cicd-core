@@ -38,13 +38,12 @@ on:
         type: string
         required: true
         description: The tag to use for the image
-      aws_account_id:
-        type: string
+    secrets:
+      AWS_ACCOUNT_ID:
         required: true
         description: The AWS account ID to use for the action
-      aws_region:
-        type: string
-        default: us-west-2
+      AWS_REGION:
+        required: true
         description: The AWS region to use for the action
 
 jobs:
@@ -62,14 +61,14 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.aws_account_id }}:role/github-actions
-          aws-region: ${{ inputs.aws_region }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login_ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
-          registries: ${{ inputs.aws_account_id }}
+          registries: ${{ secrets.aws_account_id }}
 
       - name: Build, Tag, and Push Docker Image to ECR
         shell: bash

@@ -19,14 +19,14 @@ on:
         default: 'patch'
       dry_run_tag:
         description: 'Calculate the next version without creating a tag'
-        type: string
+        type: boolean
         required: false
-        default: 'false'
+        default: false
       draft_release:
         description: 'Create release as draft'
-        type: string
+        type: boolean
         required: false
-        default: 'false'
+        default: false
 
 jobs:
   tag-and-release:
