@@ -76,13 +76,12 @@ jobs:
         run: |
           # if WORKSPACE is not set, use the default value
           if [ -z $WORKSPACE && -n ${{ vars.WORKSPACE }} ]; then
-              WORKSPACE=${{ vars.WORKSPACE }}
-              REPOSITORY=$WORKSPACE/$REPOSITORY
+              export WORKSPACE=${{ vars.WORKSPACE }}
+              export REPOSITORY=$WORKSPACE/$REPOSITORY
           elif [ -z $WORKSPACE && -z ${{ vars.WORKSPACE }} ]; then
               echo "WORKSPACE is not set, using the default value"
-              REPOSITORY=$REPOSITORY
           fi
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
+          docker build -q -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "Image tag: $IMAGE_TAG"
           echo "Push image to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
