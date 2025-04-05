@@ -74,14 +74,17 @@ jobs:
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
         run: |
+          set -e
+          set -o pipefail
+
           log() {
             echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
           }
 
           # if WORKSPACE is not set, use the default value
           if [ -z "$WORKSPACE" ] || [ -n "${{ vars.WORKSPACE }}" ]; then
-              WORKSPACE=${{ vars.WORKSPACE }}
-              REPOSITORY=$WORKSPACE/$REPOSITORY
+              export WORKSPACE=${{ vars.WORKSPACE }}
+              export REPOSITORY=$WORKSPACE/$REPOSITORY
           fi
           if [ -z "$REPOSITORY" ]; then
             log "Error: REPOSITORY is empty"
