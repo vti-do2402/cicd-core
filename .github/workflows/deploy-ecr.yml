@@ -81,18 +81,43 @@ jobs:
             echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
           }
 
+          log "Initial variables:"
+          log "WORKSPACE: $WORKSPACE"
+          log "REPOSITORY: $REPOSITORY"
+          log "REGISTRY: $REGISTRY"
+
           # if WORKSPACE is not set, use the default value
           if [ -z "$WORKSPACE" ] || [ -n "${{ vars.WORKSPACE }}" ]; then
               export WORKSPACE=${{ vars.WORKSPACE }}
               export REPOSITORY=$WORKSPACE/$REPOSITORY
+              log "Updated variables:"
+              log "WORKSPACE: $WORKSPACE"
+              log "REPOSITORY: $REPOSITORY"
           fi
+
           if [ -z "$REPOSITORY" ]; then
             log "Error: REPOSITORY is empty"
             exit 1
           fi
 
-          docker build -q -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
+          log "Starting Docker build for $REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
+          log "Docker build completed successfully"
 
       - name: Push Docker Image to ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ inputs.ecr_repository }}
+          WORKSPACE: ${{ inputs.workspace }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
+          set -e
+          set -o pipefail
+
+          log() {
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+
+          log "Starting push to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          log "Successfully pushed image to ECR"
