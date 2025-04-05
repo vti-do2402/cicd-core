@@ -64,8 +64,8 @@ jobs:
         with:
           registries: ${{ secrets.AWS_ACCOUNT_ID }}
 
-      - name: Build and Push Docker Image to ECR
-        id: build-and-push
+      - name: Build Docker Image
+        id: build-docker-image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ inputs.ecr_repository }}
@@ -74,14 +74,22 @@ jobs:
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
         run: |
+          log() {
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+
           # if WORKSPACE is not set, use the default value
-          if [ -z $WORKSPACE && -n ${{ vars.WORKSPACE }} ]; then
-              export WORKSPACE=${{ vars.WORKSPACE }}
-              export REPOSITORY=$WORKSPACE/$REPOSITORY
-          elif [ -z $WORKSPACE && -z ${{ vars.WORKSPACE }} ]; then
-              echo "WORKSPACE is not set, using the default value"
+          if [ -z "$WORKSPACE" ] || [ -n "${{ vars.WORKSPACE }}" ]; then
+              WORKSPACE=${{ vars.WORKSPACE }}
+              REPOSITORY=$WORKSPACE/$REPOSITORY
           fi
+          if [ -z "$REPOSITORY" ]; then
+            log "Error: REPOSITORY is empty"
+            exit 1
+          fi
+
           docker build -q -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
+
+      - name: Push Docker Image to ECR
+        run: |
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "Image tag: $IMAGE_TAG"
-          echo "Push image to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
