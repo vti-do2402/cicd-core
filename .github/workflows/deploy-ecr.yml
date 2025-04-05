@@ -6,19 +6,19 @@ on:
     inputs:
       runs_on:
         type: string
-        default: ${{ vars.RUNS_ON }}
+        default: ubuntu-latest
         description: The runner to use for the action
       environment:
         type: string
-        default: ${{ vars.ENVIRONMENT }}
+        required: true
         description: The environment to push the image to (development, staging, production)
       ecr_repository:
         type: string
-        default: ${{ vars.ECR_REPOSITORY }}
+        required: true
         description: The repository to push the image to
       workspace:
         type: string
-        default: ${{ vars.WORKSPACE }}
+        required: true
         description: The workspace to push the image to
       docker_build_context:
         type: string
@@ -74,7 +74,15 @@ jobs:
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
         run: |
-          docker build -t $REGISTRY/$WORKSPACE/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
-          docker push $REGISTRY/$WORKSPACE/$REPOSITORY:$IMAGE_TAG
+          # if WORKSPACE is not set, use the default value
+          if [ -z $WORKSPACE && -n ${{ vars.WORKSPACE }} ]; then
+              WORKSPACE=${{ vars.WORKSPACE }}
+              REPOSITORY=$WORKSPACE/$REPOSITORY
+          elif [ -z $WORKSPACE && -z ${{ vars.WORKSPACE }} ]; then
+              echo "WORKSPACE is not set, using the default value"
+              REPOSITORY=$REPOSITORY
+          fi
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "Image tag: $IMAGE_TAG"
-          echo "Push image to ECR: $REGISTRY/$WORKSPACE/$REPOSITORY:$IMAGE_TAG"
+          echo "Push image to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
