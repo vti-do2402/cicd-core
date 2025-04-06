@@ -67,13 +67,38 @@ jobs:
           node-version: ${{ inputs.node_version }}
 
       - name: Install Dependencies
-        run: npm install --omit=dev
+        run: |
+          sudo apt-get update --no-install-recommends
+          sudo apt-get install -y zip gzip tar
+          npm install --omit=dev
 
       - name: Build
         run: npm run build -- --no-lint --no-test
+
+      - name: Compress Artifacts
+        run: |
+          set -e
+          set -o pipefail
+
+          log() {
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+
+          log "Compressing artifacts"
+          if [ -d "build" ]; then
+            log "Compressing build directory"
+            tar -czvf build.tar.gz build/
+            zip -r build.zip build/
+            gzip -r build/
+          else
+            log "Build directory not found"
+            exit 1
+          fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifacts }}
-          path: build/
+          path: build.[tar.gz|zip|gzip]
+          retention-days: 1
+          if-no-files-found: error

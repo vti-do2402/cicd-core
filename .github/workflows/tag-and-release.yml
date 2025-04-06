@@ -85,4 +85,4 @@ jobs:
           body: ${{ steps.tag_version.outputs.changelog }}
           draft: ${{ inputs.draft_release }}
           artifactErrorsFailBuild: true
-          artifacts: artifacts/*[^s].jar
+          artifacts: artifacts/*[^s].jar, artifacts/*.[tar.gz|zip|gzip]
