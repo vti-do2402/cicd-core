@@ -1,0 +1,74 @@
+name: CI React
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        type: string
+        default: ubuntu-latest
+      node_version:
+        type: string
+        default: '18'
+      artifacts:
+        type: string
+        default: 'artifacts '
+      skip_sonar:
+        type: boolean
+        default: false
+
+jobs:
+  code-quality:
+    name: 'Code Quality'
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Install Dependencies
+        run: npm install --include=dev
+
+      - name: Run Lint
+        run: npm run lint -- --fix
+        continue-on-error: true
+
+      - name: Run Tests
+        run: npm run test
+
+      - name: Analyze with SonarQube
+        if: inputs.skip_sonar == false
+        uses: SonarSource/sonarqube-scan-action@v5.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        continue-on-error: true
+
+  build:
+    name: Build
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - name: Install Dependencies
+        run: npm install --omit=dev
+
+      - name: Build
+        run: npm run build -- --no-lint --no-test
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifacts }}
+          path: build/
