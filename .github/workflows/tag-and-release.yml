@@ -74,7 +74,7 @@ jobs:
           echo "download-artifact.outputs.download-path"
           echo ${{ steps.download-artifact.outputs.download-path }}
           echo "artifacts"
-          ls -la artifacts
+          ls -la ${{ steps.download-artifact.outputs.download-path }}
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
@@ -85,4 +85,5 @@ jobs:
           body: ${{ steps.tag_version.outputs.changelog }}
           draft: ${{ inputs.draft_release }}
           artifactErrorsFailBuild: true
-          artifacts: artifacts/*.[jar|tar.gz|zip|gzip]
+          # TODO: Add support for multiple artifacts
+          artifacts: ${{ steps.download-artifact.outputs.download-path }}/*
