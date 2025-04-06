@@ -68,9 +68,9 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm install --omit=dev
           sudo apt-get update --no-install-recommends
           sudo apt-get install -y zip gzip tar
+          npm install --omit=dev
 
       - name: Build
         run: npm run build -- --no-lint --no-test
