@@ -11,10 +11,15 @@ on:
         default: '18'
       artifacts:
         type: string
-        default: 'artifacts '
+        default: 'artifacts'
       skip_sonar:
         type: boolean
         default: false
+    secrets:
+      SONAR_TOKEN:
+        required: false
+      SONAR_HOST_URL:
+        required: false
 
 jobs:
   code-quality:
