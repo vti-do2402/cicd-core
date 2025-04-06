@@ -1,0 +1,41 @@
+name: Maven Spring CI Action
+description: Build and Test with Maven
+
+inputs:
+  # NOTE: Amazon Corretto only supports the major version specification.
+  java_version:
+    default: '17'
+    description: The Java version to use for the action
+  distribution:
+    default: corretto
+    description: The distribution to use for the action
+  skip_lint:
+    default: 'true'
+    description: Whether to skip the lint step
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.java_version }}
+        distribution: ${{ inputs.distribution }}
+        cache: 'maven'
+
+    - name: Install dependencies
+      shell: bash
+      run: ./mvnw --batch-mode --update-snapshots dependency:go-offline
+
+    - name: Lint
+      shell: bash
+      run: ./mvnw --batch-mode checkstyle:check
+      continue-on-error: ${{ inputs.skip_lint }}
+
+    - name: Unit Tests
+      shell: bash
+      run: ./mvnw --batch-mode test
+
+    - name: Build with Maven
+      shell: bash
+      run: ./mvnw --batch-mode --update-snapshots clean package -DskipTests

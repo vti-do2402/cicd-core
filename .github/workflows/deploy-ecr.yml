@@ -1,0 +1,100 @@
+name: Deploy to Amazon ECR Workflow
+description: Build and Push Docker Image to ECR
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        type: string
+        default: ubuntu-latest
+        description: The runner to use for the action
+      environment:
+        type: string
+        required: true
+        description: The environment to push the image to (development, staging, production)
+      ecr_repository:
+        type: string
+        required: true
+        description: The repository to push the image to
+      workspace:
+        type: string
+        required: true
+        description: The workspace to push the image to
+      docker_build_context:
+        type: string
+        default: .
+        description: The context to build the image in
+      dockerfile:
+        type: string
+        default: Dockerfile
+        description: The Dockerfile to use for the image
+      image_tag:
+        type: string
+        required: true
+        description: The tag to use for the image
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+        description: The AWS account ID to use for the action
+      AWS_REGION:
+        required: true
+        description: The AWS region to use for the action
+
+jobs:
+  deploy-ecr:
+    name: Deploy to Amazon ECR
+    runs-on: ${{ inputs.runs_on }}
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for Sonar analysis
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-role
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: Build and Push Docker Image to ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ inputs.ecr_repository }}
+          WORKSPACE: ${{ inputs.workspace }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          DOCKERFILE_PATH: ${{ inputs.dockerfile }}
+          DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
+        run: |
+          set -e
+          set -o pipefail
+
+          log() {
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+          }
+
+          # if WORKSPACE is not set, use the default value
+          if [ -z "$WORKSPACE" ] || [ -n "${{ vars.WORKSPACE }}" ]; then
+              export WORKSPACE=${{ vars.WORKSPACE }}
+              export REPOSITORY=$WORKSPACE/$REPOSITORY
+          fi
+
+          if [ -z "$REPOSITORY" ]; then
+            log "Error: REPOSITORY is empty"
+            exit 1
+          fi
+
+          log "Starting Docker build for $REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY
+          log "Docker build completed successfully"
+
+          log "Starting push to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          log "Successfully pushed image to ECR"

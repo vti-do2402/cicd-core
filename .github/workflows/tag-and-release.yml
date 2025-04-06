@@ -1,0 +1,88 @@
+name: 'Tag and Release Workflow'
+description: 'Creates a new tag and GitHub release'
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        description: 'The runner to use for the action'
+        type: string
+        required: true
+      default_bump:
+        description: 'Which type of bump to use when none explicitly provided (patch, minor, major)'
+        type: string
+        required: false
+        default: 'patch'
+      dry_run_tag:
+        description: 'Calculate the next version without creating a tag'
+        type: boolean
+        default: false
+      draft_release:
+        description: 'Create release as draft'
+        type: boolean
+        default: false
+      artifacts:
+        description: 'The artifacts to upload to the release'
+        type: string
+        required: true
+    secrets:
+      TOKEN:
+        required: true
+        description: The GitHub token to use for the action
+    outputs:
+      new_tag:
+        description: The new tag
+        value: ${{ jobs.tag-and-release.outputs.new_tag }}
+      changelog:
+        description: The changelog
+        value: ${{ jobs.tag-and-release.outputs.changelog }}
+
+permissions:
+  contents: write
+
+jobs:
+  tag-and-release:
+    name: Tag and Release
+    runs-on: ${{ inputs.runs_on }}
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+      changelog: ${{ steps.tag_version.outputs.changelog }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.TOKEN }}
+
+      - name: Calculate or Create Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.TOKEN }}
+          default_bump: ${{ inputs.default_bump }}
+          dry_run: ${{ inputs.dry_run_tag }}
+
+      - name: Download Artifacts
+        id: download-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifacts }}
+          path: artifacts
+
+      - name: Check
+        run: |
+          ls -la
+          echo "download-artifact.outputs.download-path"
+          echo ${{ steps.download-artifact.outputs.download-path }}
+          echo "artifacts"
+          ls -la artifacts
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          draft: ${{ inputs.draft_release }}
+          artifactErrorsFailBuild: true
+          artifacts: artifacts/*[^s].jar

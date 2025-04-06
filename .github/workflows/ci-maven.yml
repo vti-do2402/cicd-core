@@ -1,0 +1,105 @@
+name: Maven Spring CI Workflow
+description: Build and Test with Maven
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        type: string
+        default: ubuntu-latest
+        description: The runner to use for the action
+      # NOTE: Amazon Corretto only supports the major version specification.
+      java_version:
+        type: string
+        default: '17'
+        description: The Java version to use for the action
+      distribution:
+        type: string
+        default: corretto
+        description: The distribution to use for the action
+      skip_sonar:
+        type: boolean
+        default: false
+        description: Whether to skip the SonarQube analysis
+      sonar_token:
+        type: string
+        description: The SonarQube token to use for the action
+      sonar_host_url:
+        type: string
+        description: The SonarQube host URL to use for the action
+      artifacts:
+        type: string
+        required: true
+        description: The artifacts to upload to the release
+    secrets:
+      SONAR_TOKEN:
+        required: true
+        description: The SonarQube token to use for the action
+      SONAR_HOST_URL:
+        required: true
+        description: The SonarQube host URL to use for the action
+
+jobs:
+  code-quality:
+    name: Code Quality
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for Sonar analysis
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.distribution }}
+          cache: 'maven'
+
+      - name: Install dependencies
+        run: mvn --batch-mode --update-snapshots dependency:go-offline
+
+      - name: Lint
+        run: mvn --batch-mode checkstyle:check
+        continue-on-error: true
+
+      - name: Unit Tests
+        run: mvn --batch-mode test
+
+      - name: Analyze with SonarQube
+        if: inputs.skip_sonar == false
+        uses: SonarSource/sonarqube-scan-action@v5.1.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        continue-on-error: true
+
+  build:
+    name: Build
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Important for Sonar analysis
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: ${{ inputs.distribution }}
+          cache: 'maven'
+
+      - name: Build
+        run: |
+          mvn --batch-mode clean install -DskipTests
+          ls -la target
+      # TODO: Set Tag with maven
+      # mvn versions:set -DnewVersion=inputs.new_tag
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifacts }}
+          path: target/*[^s].jar # only upload the app jar file
+          retention-days: 1
+          if-no-files-found: error
