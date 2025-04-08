@@ -1,0 +1,47 @@
+name: Update Kubernetes Manifest
+
+on:
+  workflow_call:
+    inputs:
+      runs_on:
+        type: string
+        default: ubuntu-latest
+        description: The runner to use for the action
+      service:
+        type: string
+        required: true
+        description: The service to update (api-gateway, backend-service, database-service, ui-service)
+      image:
+        type: string
+        required: true
+        description: The image to use for the service
+    secrets:
+      TOKEN:
+        required: true
+        description: The GitHub token to use for the action
+
+jobs:
+  update-k8s:
+    name: Update Kubernetes Manifest
+    runs-on: ${{ inputs.runs_on }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          repository: vti-do2402/infra-provisioning
+          path: infra-provisioning
+          token: ${{ secrets.TOKEN }}
+
+      - name: Update Kubernetes Manifest
+        working-directory: infra-provisioning/kubernetes/${{ inputs.service }}
+        run: |
+          sed -i "s/image: .*/image: ${{ inputs.image }}/" deploy.yml
+
+      - name: Commit Changes
+        working-directory: infra-provisioning/kubernetes/${{ inputs.service }}
+        run: |
+          git config --global user.email "vtq2301@outlook.com"
+          git config --global user.name "Quentin"
+          git add ./deploy.yml
+          git commit -m "ci: update kubernetes manifest"
+          git push origin HEAD:main -f
