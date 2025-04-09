@@ -134,7 +134,7 @@ jobs:
           repository: vti-do2402/infra-provisioning
           ref: feat/k8s-manifest
           path: infra-provisioning
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.TOKEN }}
 
       - name: Update Kubernetes Manifest
         working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
