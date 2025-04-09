@@ -33,6 +33,10 @@ jobs:
           path: infra-provisioning
           token: ${{ secrets.TOKEN }}
 
+      - name: Check
+        run: |
+          ls -la
+          ls -la infra-provisioning/kubernetes/${{ inputs.service }}
       - name: Update Kubernetes Manifest
         working-directory: infra-provisioning/kubernetes/${{ inputs.service }}
         run: |
