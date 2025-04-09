@@ -51,7 +51,8 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
     outputs:
-      image: ${{ steps.build-and-push-docker-image-to-ecr.outputs.image }}
+      image: ${{ steps.build-docker-image.outputs.image }}
+      image_latest: ${{ steps.build-docker-image.outputs.image_latest }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -70,8 +71,8 @@ jobs:
         with:
           registries: ${{ secrets.AWS_ACCOUNT_ID }}
 
-      - name: Build and Push Docker Image to ECR
-        id: build-and-push-docker-image-to-ecr
+      - name: Build Docker Image
+        id: build-docker-image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ inputs.ecr_repository }}
@@ -79,7 +80,6 @@ jobs:
           IMAGE_TAG: ${{ inputs.image_tag }}
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
-
         run: |
           set -e
           set -o pipefail
@@ -99,25 +99,29 @@ jobs:
             exit 1
           fi
 
+          created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
           log "Starting Docker build for $REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY \
               --label "org.opencontainers.image.name=$REPOSITORY" \
               --label "org.opencontainers.image.version=$IMAGE_TAG" \
               --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
               --label "org.opencontainers.image.revision=${{ github.sha }}" \
-              --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+              --label "org.opencontainers.image.created=$created" \
               --label "org.opencontainers.image.authors=Quentin"
 
-          log "Docker build completed successfully"
-          if [ ${{ github.ref }} = "refs/heads/main" ]; then
+          if [ ${{ github.ref }} = "refs/heads/main" ] || [ ${{ github.ref }} = "refs/heads/dev" ]; then
             log "Tagging image as latest"
             docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:latest
-            log "Pushing image to ECR: $REGISTRY/$REPOSITORY:latest"
-            docker push $REGISTRY/$REPOSITORY:latest
+            echo "image_latest=$REGISTRY/$REPOSITORY:latest" >> $GITHUB_OUTPUT
           fi
 
-          log "Starting push to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          log "Successfully pushed image to ECR"
-
           echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          log "Docker build completed successfully"
+
+      - name: Push Image to ECR
+        run: |
+          docker push ${{ steps.build-docker-image.outputs.image }}
+          if [ ${{ github.ref }} = "refs/heads/main" ] || [ ${{ github.ref }} = "refs/heads/dev" ]; then
+            docker push ${{ steps.build-docker-image.outputs.image_latest }}
+          fi
