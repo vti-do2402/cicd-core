@@ -52,4 +52,4 @@ jobs:
           git config --global user.name "Quentin"
           git add ./deploy.yml
           git commit -m "ci: update ${{ inputs.service }} kubernetes manifest"
-          git push origin HEAD:feat/k8s-manifest
+          git push origin HEAD:feat/k8s-manifest -f

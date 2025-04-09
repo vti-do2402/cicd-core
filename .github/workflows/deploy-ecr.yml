@@ -79,6 +79,7 @@ jobs:
           IMAGE_TAG: ${{ inputs.image_tag }}
           DOCKERFILE_PATH: ${{ inputs.dockerfile }}
           DOCKER_BUILD_DIRECTORY: ${{ inputs.docker_build_context }}
+
         run: |
           set -e
           set -o pipefail
