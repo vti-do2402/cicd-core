@@ -44,7 +44,7 @@ on:
         description: The AWS region to use for the action
       TOKEN:
         required: true
-        description: The GitHub token to use for the action
+        description: The GitHub token to use for updating the kubernetes manifest
 
 jobs:
   deploy-ecr:
@@ -134,7 +134,7 @@ jobs:
           repository: vti-do2402/infra-provisioning
           ref: feat/k8s-manifest
           path: infra-provisioning
-          token: ${{ secrets.TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Update Kubernetes Manifest
         working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
