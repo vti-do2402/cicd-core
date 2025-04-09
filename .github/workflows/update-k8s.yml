@@ -7,6 +7,10 @@ on:
         type: string
         default: ubuntu-latest
         description: The runner to use for the action
+      environment:
+        type: string
+        required: true
+        description: The environment to use for the action
       service:
         type: string
         required: true
@@ -24,6 +28,8 @@ jobs:
   update-k8s:
     name: Update Kubernetes Manifest
     runs-on: ${{ inputs.runs_on }}
+    environment:
+      name: ${{ inputs.environment }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

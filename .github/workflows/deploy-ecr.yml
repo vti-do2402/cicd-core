@@ -1,6 +1,5 @@
 name: Deploy to Amazon ECR Workflow
 description: Build and Push Docker Image to ECR
-
 on:
   workflow_call:
     inputs:
@@ -43,11 +42,17 @@ on:
       image:
         description: The image to use for the action
         value: ${{ jobs.deploy-ecr.outputs.image }}
+      image_latest:
+        description: The latest image to use for the action
+        value: ${{ jobs.deploy-ecr.outputs.image_latest }}
 
 jobs:
   deploy-ecr:
     name: Deploy to Amazon ECR
     runs-on: ${{ inputs.runs_on }}
+    permissions:
+      id-token: write
+      contents: write
     environment:
       name: ${{ inputs.environment }}
     outputs:
