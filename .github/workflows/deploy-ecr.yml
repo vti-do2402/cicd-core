@@ -42,7 +42,7 @@ on:
     outputs:
       image:
         description: The image to use for the action
-        value: ${{ steps.build-and-push-docker-image-to-ecr.outputs.image }}
+        value: ${{ jobs.deploy-ecr.outputs.image }}
 
 jobs:
   deploy-ecr:
@@ -50,6 +50,8 @@ jobs:
     runs-on: ${{ inputs.runs_on }}
     environment:
       name: ${{ inputs.environment }}
+    outputs:
+      image: ${{ steps.build-and-push-docker-image-to-ecr.outputs.image }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -69,6 +71,7 @@ jobs:
           registries: ${{ secrets.AWS_ACCOUNT_ID }}
 
       - name: Build and Push Docker Image to ECR
+        id: build-and-push-docker-image-to-ecr
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ inputs.ecr_repository }}
