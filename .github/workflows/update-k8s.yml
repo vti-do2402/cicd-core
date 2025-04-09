@@ -51,5 +51,5 @@ jobs:
           git config --global user.email "vtq2301@outlook.com"
           git config --global user.name "Quentin"
           git add ./deploy.yml
-          git commit -m "ci: update kubernetes manifest"
-          git push origin HEAD:feat/k8s-manifest -f
+          git commit -m "ci: update ${{ inputs.service }} kubernetes manifest"
+          git push origin HEAD:feat/k8s-manifest
