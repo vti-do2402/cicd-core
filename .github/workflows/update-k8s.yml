@@ -42,9 +42,10 @@ jobs:
         working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
         run: |
           sed -i "s|image: .*|image: ${{ inputs.image }}|" deploy.yml
+          cat deploy.yml | grep image
 
       - name: Commit Changes
-        working-directory: infra-provisioning/kubernetes/${{ inputs.service }}
+        working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
         run: |
           git config --global user.email "vtq2301@outlook.com"
           git config --global user.name "Quentin"
