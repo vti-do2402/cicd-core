@@ -108,6 +108,10 @@ jobs:
               --label "org.opencontainers.image.authors=Quentin"
 
           log "Docker build completed successfully"
+          if [ ${{ github.ref }} = "refs/heads/main" ]; then
+            log "Tagging image as latest"
+            docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:latest
+          fi
 
           log "Starting push to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
