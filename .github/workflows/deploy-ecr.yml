@@ -100,12 +100,17 @@ jobs:
 
           log "Starting Docker build for $REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f $DOCKERFILE_PATH $DOCKER_BUILD_DIRECTORY \
-              --build-arg APP_NAME=$REPOSITORY \
-              --build-arg APP_VERSION=$IMAGE_TAG
+              --label "org.opencontainers.image.name=$REPOSITORY" \
+              --label "org.opencontainers.image.version=$IMAGE_TAG" \
+              --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+              --label "org.opencontainers.image.revision=${{ github.sha }}" \
+              --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+              --label "org.opencontainers.image.authors=Quentin"
+
           log "Docker build completed successfully"
 
           log "Starting push to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           log "Successfully pushed image to ECR"
 
-          echo "::set-output name=image::$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT

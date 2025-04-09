@@ -41,6 +41,7 @@ jobs:
       - name: Update Kubernetes Manifest
         working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
         run: |
+          echo "image: ${{ inputs.image }}"
           sed -i "s|image: .*|image: ${{ inputs.image }}|" deploy.yml
           cat deploy.yml | grep image
 
