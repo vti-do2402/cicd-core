@@ -112,6 +112,8 @@ jobs:
           if [ ${{ github.ref }} = "refs/heads/main" ]; then
             log "Tagging image as latest"
             docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:latest
+            log "Pushing image to ECR: $REGISTRY/$REPOSITORY:latest"
+            docker push $REGISTRY/$REPOSITORY:latest
           fi
 
           log "Starting push to ECR: $REGISTRY/$REPOSITORY:$IMAGE_TAG"

@@ -48,7 +48,7 @@ jobs:
       - name: Commit Changes
         working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
         run: |
-          git config --global user.email "vtq2301@outlook.com"
+          git config --global user.email "vtq231@outlook.com"
           git config --global user.name "Quentin"
           git add ./deploy.yml
           git commit -m "ci: update ${{ inputs.service }} kubernetes manifest"
