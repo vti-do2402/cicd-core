@@ -36,9 +36,10 @@ jobs:
       - name: Check
         run: |
           ls -la
-          ls -la infra-provisioning/kubernetes/${{ inputs.service }}
+          ls -la infra-provisioning/
+          ls -la infra-provisioning/kubernetes/base/${{ inputs.service }}
       - name: Update Kubernetes Manifest
-        working-directory: infra-provisioning/kubernetes/${{ inputs.service }}
+        working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
         run: |
           sed -i "s|image: .*|image: ${{ inputs.image }}|" deploy.yml
 
