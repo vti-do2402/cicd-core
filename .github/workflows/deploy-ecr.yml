@@ -31,6 +31,10 @@ on:
         type: string
         required: true
         description: The tag to use for the image
+      service:
+        type: string
+        required: true
+        description: The service to update the kubernetes manifest for
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -38,26 +42,16 @@ on:
       AWS_REGION:
         required: true
         description: The AWS region to use for the action
-    outputs:
-      image:
-        description: The image to use for the action
-        value: ${{ jobs.deploy-ecr.outputs.image }}
-      image_latest:
-        description: The latest image to use for the action
-        value: ${{ jobs.deploy-ecr.outputs.image_latest }}
 
 jobs:
   deploy-ecr:
-    name: Deploy to Amazon ECR
+    name: Deploy to Amazon ECR and Update Kubernetes Manifest
     runs-on: ${{ inputs.runs_on }}
     permissions:
       id-token: write
       contents: write
     environment:
       name: ${{ inputs.environment }}
-    outputs:
-      image: ${{ steps.build-docker-image.outputs.image }}
-      image_latest: ${{ steps.build-docker-image.outputs.image_latest }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -130,3 +124,27 @@ jobs:
           if [ ${{ github.ref }} = "refs/heads/main" ] || [ ${{ github.ref }} = "refs/heads/dev" ]; then
             docker push ${{ steps.build-docker-image.outputs.image_latest }}
           fi
+
+      - name: Checkout Infra Provisioning
+        uses: actions/checkout@v4
+        with:
+          repository: vti-do2402/infra-provisioning
+          ref: feat/k8s-manifest
+          path: infra-provisioning
+          token: ${{ secrets.TOKEN }}
+
+      - name: Update Kubernetes Manifest
+        working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
+        run: |
+          echo "image: ${{ steps.build-docker-image.outputs.image }}"
+          sed -i "s|image: .*|image: ${{ steps.build-docker-image.outputs.image }}|" deploy.yml
+          cat deploy.yml | grep image
+
+      - name: Commit Changes
+        working-directory: infra-provisioning/kubernetes/base/${{ inputs.service }}
+        run: |
+          git config --global user.email "vtq231@outlook.com"
+          git config --global user.name "Quentin"
+          git add ./deploy.yml
+          git commit -m "ci: update ${{ inputs.service }} kubernetes manifest"
+          git push origin HEAD:feat/k8s-manifest -f
